@@ -9,7 +9,8 @@ W: wall
 +: empty cell
 T: treasure
 O: Pit
-
+C: Cliff
+S: Starting cell
 Example:
 '''
 
@@ -29,16 +30,18 @@ cliffwalking_def = '''
 ++++++++++
 ++++++++++
 ++++++++++
-
-'''
+SCCCCCCCCT
+'''.strip()
 
 arguments = {
     '+': dict(name='+', reward=-1, can_step_on_it=True, is_end_state=False),
     'W': dict(name='W', reward=-1, can_step_on_it=False, is_end_state=False),
     'O': dict(name='O', reward=-20, can_step_on_it=True, is_end_state=True),
     'T': dict(name='T', reward=10, can_step_on_it=True, is_end_state=True),
+    'C': dict(name='C', reward=-100, can_step_on_it=True, is_end_state=True),
+    'S': dict(name='S', reward=-1, can_step_on_it=True, is_end_state=False),
     'Padding': dict(name='|', reward=-1, can_step_on_it=False, is_end_state=False)
-    }
+}
 
 
 # %%
@@ -115,19 +118,23 @@ class Cell:
 class Grid:
     def __init__(self, grid_def):
         self.grid_def = grid_def
+        self.starting_cell = None
         self._parse_grid_def()
         self._create_padding()
         self._create_neighborhoods()
 
     def _parse_grid_def(self):
         self.grid = []
-        for line in grid_def.split('\n'):
+        for line in self.grid_def.split('\n'):
             self.grid.append(self._parse_line(line))
 
     def _parse_line(self, line) -> List[Cell]:
         grid_line = []
         for char in line:
-            grid_line.append(create_cell(char))
+            new_cell = create_cell(char)
+            grid_line.append(new_cell)
+            if new_cell.name == 'S':
+                self.starting_cell = new_cell
         return grid_line
 
     def _create_padding(self):
@@ -144,12 +151,18 @@ class Grid:
     def _create_neighborhoods(self):
         # creating padding
         for i in range(1, len(self.grid)-1):
-            for j in range(1, len(self.grid)-1):
+            for j in range(1, len(self.grid[0])-1):
                 N = self.grid[i-1][j]
                 E = self.grid[i][j+1]
                 S = self.grid[i+1][j]
                 W = self.grid[i][j-1]
                 self.grid[i][j].add_neighbors(N, E, S, W)
+
+    def get_starting_position(self) -> Cell:
+        if self.starting_cell is not None:
+            return self.starting_cell
+        else:
+            return self.get_initial_random_position()
 
     def get_initial_random_position(self) -> Cell:
         # 1 because of the padding

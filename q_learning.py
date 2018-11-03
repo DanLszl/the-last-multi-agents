@@ -8,7 +8,7 @@ import random
 from typing import Dict, Callable
 
 from grid import Grid
-from grid import grid_def
+from grid import grid_def, cliffwalking_def
 from grid import Action
 
 from policy import Policy, EpsilonGreedy, EpsilonGreedyGLIE
@@ -31,7 +31,7 @@ def SARSA_choose_next_q_value(q_values: Dict[Action, float], policy: Policy):
 
 def TD(gamma: float, alfa: float, grid: Grid, policy: Policy, num_of_episodes: int, choose_next_q_value: Callable[[Dict[Action, float], Policy], float]):
     for e in range(num_of_episodes):
-        current_position = grid.get_initial_random_position()
+        current_position = grid.get_starting_position()     # if the grid_def doesn't contain a starting pos, this is going to be random
         episode_reward = 0
         while not current_position.is_end_state:
             action = policy.select_action(current_position.q_values)
@@ -78,6 +78,9 @@ def main():
 
     if task == 'gridworld':
         grid = Grid(grid_def)
+    elif task == 'cliffwalking':
+        grid = Grid(cliffwalking_def)
+        gamma = 1   # cliffwalking is undiscounted
     else:
         print('The task ', task, ' is not implemented')
         exit(1)
