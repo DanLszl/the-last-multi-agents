@@ -24,6 +24,14 @@ grid_def = '''
 +++++++T
 '''.strip()
 
+cliffwalking_def = '''
+++++++++++
+++++++++++
+++++++++++
+++++++++++
+
+'''
+
 arguments = {
     '+': dict(name='+', reward=-1, can_step_on_it=True, is_end_state=False),
     'W': dict(name='W', reward=-1, can_step_on_it=False, is_end_state=False),
@@ -56,7 +64,11 @@ class Cell:
         self._q_values = self._init_q_values()
 
     def _init_q_values(self):
-        return {a: 0 for a in Action}
+        if self._is_end_state:
+            # Need this for the bootstrap update rule
+            return {a: self._reward for a in Action}
+        else:
+            return {a: 0 for a in Action}
 
     def add_neighbors(self, N, E, S, W):
         self.neighbors = {Action.N: N, Action.E: E, Action.S: S, Action.W: W}

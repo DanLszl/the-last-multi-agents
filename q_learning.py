@@ -1,3 +1,9 @@
+'''
+Usage:
+  q_learning.py [--Q-learning|--SARSA] [--episodes <value>] [--task <gridworld|cliffwalking>]
+'''
+
+
 import random
 from typing import Dict, Callable
 
@@ -5,7 +11,7 @@ from grid import Grid
 from grid import grid_def
 from grid import Action
 
-from policy import Policy, EpsilonGreedy
+from policy import Policy, EpsilonGreedy, EpsilonGreedyGLIE
 
 from plotting import plot_grid
 
@@ -52,19 +58,48 @@ def Q_learning(gamma: float, alfa: float, grid: Grid, policy: Policy, num_of_epi
 
 
 def main():
+    import sys, getopt
+    opts, args = getopt.getopt(sys.argv[1:], '', ['Q-learning', 'SARSA', 'episodes=', 'task='])
+    opts = dict(opts)
+
+    try:
+        episodes = int(opts['--episodes'])
+    except KeyError:
+        episodes = 10000
+
+    try:
+        task = opts['--task']
+    except KeyError:
+        task = 'gridworld'
+
     gamma = 0.9
-    epsilon = 0.8
-    alfa = 0.1
+    # The environment is deterministic
+    alfa = 1
 
-    policy = EpsilonGreedy(epsilon)
+    if task == 'gridworld':
+        grid = Grid(grid_def)
+    else:
+        print('The task ', task, ' is not implemented')
+        exit(1)
 
-    grid = Grid(grid_def)
 
-    # Q_learning(gamma, alfa, grid, policy, num_of_episodes=100000)
-    SARSA(gamma, alfa, grid, policy, num_of_episodes=100000)
+    if '--Q-learning' in opts or '--SARSA' not in opts:
+        algorithm = Q_learning
+        # This is needed for Q-learning only
+        epsilon = 0.8
+        policy = EpsilonGreedy(epsilon)
+    elif '--SARSA' in opts:
+        algorithm = SARSA
+        policy = EpsilonGreedyGLIE()
+    else:
+        print('Algorithm is not specified')
+        exit(1)
 
+    algorithm(gamma, alfa, grid, policy, episodes)
     plot_grid(grid)
 
 
 if __name__ == '__main__':
+    print(__doc__)
     main()
+    exit(0)
