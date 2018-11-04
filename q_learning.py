@@ -16,27 +16,25 @@ from policy import Policy, EpsilonGreedy, EpsilonGreedyGLIE
 from plotting import plot_grid
 
 
-# %load_ext autoreload
-# %autoreload 2
-
-
 def Q_learning_choose_next_q_value(q_values: Dict[Action, float], policy: Policy):
     return max(q_values.values())
 
 
 def SARSA_choose_next_q_value(q_values: Dict[Action, float], policy: Policy):
-    action = policy.select_action(q_values)
+    action = policy.select_action(q_values, False)
     return q_values[action]
 
 
-def TD(gamma: float, alfa: float, grid: Grid, policy: Policy, num_of_episodes: int, choose_next_q_value: Callable[[Dict[Action, float], Policy], float]):
+def TD(gamma: float, alfa: float, grid: Grid, policy: Policy, num_of_episodes: int, choose_next_q_value: Callable[[Dict[Action, float], Policy], float], **kwargs):
     for e in range(num_of_episodes):
         current_position = grid.get_starting_position()     # if the grid_def doesn't contain a starting pos, this is going to be random
         episode_reward = 0
+        new_episode_flag = True
         while not current_position.is_end_state:
-            action = policy.select_action(current_position.q_values)
+            action = policy.select_action(current_position.q_values, new_episode_flag)
             q_value = current_position.q_values[action]
             next_position = current_position.take_action(action)
+            kwargs['debug'].append(next_position)
             reward = next_position.reward
             next_q_values = next_position.q_values
             chosen_next_q_value = choose_next_q_value(next_q_values, policy)
@@ -45,16 +43,16 @@ def TD(gamma: float, alfa: float, grid: Grid, policy: Policy, num_of_episodes: i
 
             current_position = next_position
             episode_reward += reward
-
+            new_episode_flag = False
         # print(episode_reward)
 
 
-def SARSA(gamma: float, alfa: float, grid: Grid, policy: Policy, num_of_episodes: int):
-    TD(gamma, alfa, grid, policy, num_of_episodes, SARSA_choose_next_q_value)
+def SARSA(gamma: float, alfa: float, grid: Grid, policy: Policy, num_of_episodes: int, **kwargs):
+    TD(gamma, alfa, grid, policy, num_of_episodes, SARSA_choose_next_q_value, **kwargs)
 
 
-def Q_learning(gamma: float, alfa: float, grid: Grid, policy: Policy, num_of_episodes: int):
-    TD(gamma, alfa, grid, policy, num_of_episodes, Q_learning_choose_next_q_value)
+def Q_learning(gamma: float, alfa: float, grid: Grid, policy: Policy, num_of_episodes: int, **kwargs):
+    TD(gamma, alfa, grid, policy, num_of_episodes, Q_learning_choose_next_q_value, **kwargs)
 
 
 def main():
@@ -73,8 +71,6 @@ def main():
         task = 'gridworld'
 
     gamma = 0.9
-    # The environment is deterministic
-    alfa = 1
 
     if task == 'gridworld':
         grid = Grid(grid_def)
@@ -88,10 +84,12 @@ def main():
 
     if '--Q-learning' in opts or '--SARSA' not in opts:
         algorithm = Q_learning
+        alfa = 1
         # This is needed for Q-learning only
         epsilon = 0.8
         policy = EpsilonGreedy(epsilon)
     elif '--SARSA' in opts:
+        alfa = 0.7
         algorithm = SARSA
         policy = EpsilonGreedyGLIE()
     else:

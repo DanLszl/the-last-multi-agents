@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 from grid import Grid, Action
 
 def quatromatrix(left, bottom, right, top, ax=None, triplotkw={},tripcolorkw={}):
@@ -27,7 +28,10 @@ def quatromatrix(left, bottom, right, top, ax=None, triplotkw={},tripcolorkw={})
               right.flatten(), top.flatten()   ].flatten()
 
     triplot = ax.triplot(A[:,0], A[:,1], Tr, **triplotkw)
-    tripcolor = ax.tripcolor(A[:,0], A[:,1], Tr, facecolors=C, **tripcolorkw)
+    tripcolor = ax.tripcolor(A[:,0], A[:,1],
+                                Tr,
+                                facecolors=C,
+                                **tripcolorkw) # norm=colors.LogNorm(vmin=C.min(), vmax=C.max()),
     return tripcolor
 
 
@@ -63,11 +67,20 @@ def plot_grid(grid: Grid):
 
     # Plotting Source: https://stackoverflow.com/questions/44666679/something-like-plt-matshow-but-with-triangles
 
-    fig, ax=plt.subplots()
-
+    fig, ax=plt.subplots(figsize=(12,12))
     quatromatrix(left, bottom, right, top, ax=ax,
                  triplotkw={"color": "k", "lw": 1},
-                 tripcolorkw={"cmap": "gray"})
+                 tripcolorkw={"cmap": "ocean"}, asd=asd)
+
+
+    for (i, j), z in np.ndenumerate(left[::-1]):
+        ax.text(j+0.2, i+0.5, '{:0.1f}'.format(z), ha='center', va='center')
+    for (i, j), z in np.ndenumerate(right[::-1]):
+        ax.text(j+1-0.2, i+0.5, '{:0.1f}'.format(z), ha='center', va='center')
+    for (i, j), z in np.ndenumerate(top[::-1]):
+        ax.text(j+0.5, i+0.8, '{:0.1f}'.format(z), ha='center', va='center')
+    for (i, j), z in np.ndenumerate(bottom[::-1]):
+        ax.text(j+0.5, i+0.2, '{:0.1f}'.format(z), ha='center', va='center')
 
     ax.margins(0)
     ax.set_aspect("equal")

@@ -30,6 +30,7 @@ cliffwalking_def = '''
 ++++++++++
 ++++++++++
 ++++++++++
+++++++++++
 SCCCCCCCCT
 '''.strip()
 
@@ -69,6 +70,7 @@ class Cell:
     def _init_q_values(self):
         if self._is_end_state:
             # Need this for the bootstrap update rule
+            return {a: 0 for a in Action}
             return {a: self._reward for a in Action}
         else:
             return {a: 0 for a in Action}
@@ -149,7 +151,6 @@ class Grid:
             line.append(create_cell('Padding'))
 
     def _create_neighborhoods(self):
-        # creating padding
         for i in range(1, len(self.grid)-1):
             for j in range(1, len(self.grid[0])-1):
                 N = self.grid[i-1][j]

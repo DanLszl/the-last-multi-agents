@@ -5,7 +5,7 @@ from grid import Action
 
 
 class Policy:
-    def select_action(self, q_values: Dict[Action, float]) -> Action:
+    def select_action(self, q_values: Dict[Action, float], new_episode: bool) -> Action:
         raise NotImplementedError()
 
 
@@ -13,7 +13,7 @@ class EpsilonGreedy(Policy):
     def __init__(self, epsilon: float):
         self.epsilon = epsilon
 
-    def select_action(self, q_values: Dict[Action, float]) -> Action:
+    def select_action(self, q_values: Dict[Action, float], new_episode: bool) -> Action:
         if random.random() < self.epsilon:
             # select random action
             return random.choice(list(q_values.keys()))
@@ -27,7 +27,13 @@ class EpsilonGreedyGLIE(EpsilonGreedy):
         super().__init__(1.0)
         self.episode = 0
 
-    def select_action(self, q_values: Dict[Action, float]) -> Action:
+    def update_epsilon(self):
         self.episode += 1
         self.epsilon = 1.0 / self.episode
-        return super().select_action(q_values)
+
+    def select_action(self, q_values: Dict[Action, float], new_episode_flag: bool) -> Action:
+        if new_episode_flag:
+            self.update_epsilon()
+        return super().select_action(q_values, new_episode_flag)
+
+from policy import EpsilonGreedyGLIE
