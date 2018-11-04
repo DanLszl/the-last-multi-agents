@@ -176,18 +176,23 @@ def plot_optimal_policy(grid: Grid, ax):
                 action_to_arrow[best_action](j, i)
 
 
-def plot(grid, filename=None, show_plot=True):
-    fig, axes = plt.subplots(nrows=1, ncols=2)
-    fig.set_size_inches(22, 22)
-    # plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+def plot(grid, filename=None, show_plot=True, plot_orientation='horizontal'):
+    if plot_orientation == 'horizontal':
+        fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(len(grid.grid[0])*2, len(grid.grid)))
+    else:
+        fig, axes = plt.subplots(nrows=2, ncols=1, tight_layout=True, figsize=(len(grid.grid[0]), len(grid.grid)*2))
+
     ax = axes[0]
     plot_grid(grid, ax)
 
     ax = axes[1]
     plot_optimal_policy(grid, ax)
 
+    plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05, wspace=0.009, hspace=0.009)
+    plt.tight_layout()
+
     if filename is not None:
-        plt.savefig(filename, bbox_inches='tight', dpi=300)
+        plt.savefig(filename, dpi=300) # bbox_inches='tight',
 
     if show_plot:
         plt.show()

@@ -99,8 +99,10 @@ def main():
 
     if task == 'gridworld':
         grid = Grid(grid_def)
+        plot_orientation='horizontal'
     elif task == 'cliffwalking':
         grid = Grid(cliffwalking_def)
+        plot_orientation='vertical'
     else:
         print('The task ', task, ' is not implemented')
         exit(1)
@@ -122,7 +124,7 @@ def main():
     q_filename = task + '_' + algorithm_name
     p_filename = q_filename + '_policy'
 
-    plot(grid, 'plots/' + q_filename + '.png', show_plot=False)
+    plot(grid, 'plots/' + q_filename + '.png', show_plot=False, plot_orientation=plot_orientation)
 
 
 if __name__ == '__main__':
