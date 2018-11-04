@@ -35,13 +35,13 @@ SCCCCCCCCT
 '''.strip()
 
 arguments = {
-    '+': dict(name='+', reward=-1, can_step_on_it=True, is_end_state=False),
-    'W': dict(name='W', reward=-1, can_step_on_it=False, is_end_state=False),
-    'O': dict(name='O', reward=-20, can_step_on_it=True, is_end_state=True),
-    'T': dict(name='T', reward=10, can_step_on_it=True, is_end_state=True),
-    'C': dict(name='C', reward=-100, can_step_on_it=True, is_end_state=True),
-    'S': dict(name='S', reward=-1, can_step_on_it=True, is_end_state=False),
-    'Padding': dict(name='|', reward=-1, can_step_on_it=False, is_end_state=False)
+    '+': dict(name='+', reward=-1, can_step_on_it=True, is_end_state=False, color=0),
+    'W': dict(name='W', reward=-1, can_step_on_it=False, is_end_state=False, color=-5),
+    'O': dict(name='O', reward=-20, can_step_on_it=True, is_end_state=True, color=-10),
+    'T': dict(name='T', reward=10, can_step_on_it=True, is_end_state=True, color=10),
+    'C': dict(name='C', reward=-100, can_step_on_it=True, is_end_state=True, color=-10),
+    'S': dict(name='S', reward=-1, can_step_on_it=True, is_end_state=False, color=5),
+    'Padding': dict(name='|', reward=-1, can_step_on_it=False, is_end_state=False, color=0)
 }
 
 
@@ -69,12 +69,13 @@ opposites = {
 
 # %%
 class Cell:
-    def __init__(self, name, reward, can_step_on_it, is_end_state):
+    def __init__(self, name, reward, can_step_on_it, is_end_state, color):
         self._name = name
         self._reward = reward
         self._can_step_on_it = can_step_on_it
         self._is_end_state = is_end_state
         self._q_values = self._init_q_values()
+        self._color = color
 
     def _init_q_values(self):
         if self._is_end_state:
@@ -116,6 +117,10 @@ class Cell:
     @property
     def q_values(self):
         return self._q_values
+
+    @property
+    def color(self):
+        return self._color
 
     @property
     def can_be_starting_cell(self) -> bool:
