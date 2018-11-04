@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from grid import Grid, Action
 
-def quatromatrix(left, bottom, right, top, ax=None, triplotkw={},tripcolorkw={}):
+def quatromatrix(left, bottom, right, top, ax=None, triplotkw={}, tripcolorkw={}):
     left = left[::-1]
     bottom = bottom[::-1]
     right = right[::-1]
@@ -31,7 +31,7 @@ def quatromatrix(left, bottom, right, top, ax=None, triplotkw={},tripcolorkw={})
     tripcolor = ax.tripcolor(A[:,0], A[:,1],
                                 Tr,
                                 facecolors=C,
-                                **tripcolorkw) # norm=colors.LogNorm(vmin=C.min(), vmax=C.max()),
+                                **tripcolorkw)
     return tripcolor
 
 
@@ -70,7 +70,7 @@ def plot_grid(grid: Grid):
     fig, ax=plt.subplots(figsize=(12,12))
     quatromatrix(left, bottom, right, top, ax=ax,
                  triplotkw={"color": "k", "lw": 1},
-                 tripcolorkw={"cmap": "ocean"}, asd=asd)
+                 tripcolorkw={"cmap": "ocean"})
 
 
     for (i, j), z in np.ndenumerate(left[::-1]):

@@ -3,8 +3,6 @@ Usage:
   q_learning.py [--Q-learning|--SARSA] [--episodes <value>] [--task <gridworld|cliffwalking>]
 '''
 
-
-import random
 from typing import Dict, Callable
 
 from grid import Grid
@@ -21,20 +19,21 @@ def Q_learning_choose_next_q_value(q_values: Dict[Action, float], policy: Policy
 
 
 def SARSA_choose_next_q_value(q_values: Dict[Action, float], policy: Policy):
-    action = policy.select_action(q_values, False)
+    action = policy.select_action(q_values, new_episode=False)
     return q_values[action]
 
 
 def TD(gamma: float, alfa: float, grid: Grid, policy: Policy, num_of_episodes: int, choose_next_q_value: Callable[[Dict[Action, float], Policy], float], **kwargs):
     for e in range(num_of_episodes):
-        current_position = grid.get_starting_position()     # if the grid_def doesn't contain a starting pos, this is going to be random
+        # if the grid_def doesn't contain a starting pos,
+        # current_position is going to be random
+        current_position = grid.get_starting_position()
         episode_reward = 0
         new_episode_flag = True
         while not current_position.is_end_state:
             action = policy.select_action(current_position.q_values, new_episode_flag)
             q_value = current_position.q_values[action]
             next_position = current_position.take_action(action)
-            kwargs['debug'].append(next_position)
             reward = next_position.reward
             next_q_values = next_position.q_values
             chosen_next_q_value = choose_next_q_value(next_q_values, policy)
