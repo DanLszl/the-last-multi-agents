@@ -12,7 +12,7 @@ from grid import Action
 
 from policy import Policy, EpsilonGreedy, EpsilonGreedyGLIE
 
-from plotting import plot_grid
+from plotting import plot_grid, plot_optimal_policy
 
 
 def Q_learning_choose_next_q_value(q_values: Dict[Action, float], policy: Policy):
@@ -95,19 +95,20 @@ def parse_parameters():
 def main():
     algorithm_name, episodes, task, epsilon = parse_parameters()
 
+    gamma = 1
+
     if task == 'gridworld':
         grid = Grid(grid_def)
-        gamma = 0.9
     elif task == 'cliffwalking':
         grid = Grid(cliffwalking_def)
-        gamma = 1   # cliffwalking is undiscounted
     else:
         print('The task ', task, ' is not implemented')
         exit(1)
 
     if algorithm_name == 'Q-learning':
         algorithm = Q_learning
-        # Q learning is off policy, and the env is deterministic so alfa can be 1
+        # Q learning is off policy, and the env is fully deterministic
+        # so alfa can be 1
         learning_rate = 1
         policy = EpsilonGreedy(epsilon)
     else:
@@ -117,7 +118,7 @@ def main():
 
     algorithm(gamma, learning_rate, grid, policy, episodes)
     plot_grid(grid)
-
+    plot_optimal_policy(grid)
 
 if __name__ == '__main__':
     print(__doc__)

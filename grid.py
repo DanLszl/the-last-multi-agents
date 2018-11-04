@@ -58,6 +58,15 @@ class Action(Enum):
     W = 3
 
 
+opposites = {
+    Action.N: Action.S,
+    Action.S: Action.N,
+    Action.E: Action.W,
+    Action.W: Action.E
+}
+
+
+
 # %%
 class Cell:
     def __init__(self, name, reward, can_step_on_it, is_end_state):
