@@ -4,18 +4,20 @@ import matplotlib.colors as colors
 from grid import Grid, Action
 
 
-def plot_original_grid(grid):
-    rewards = []
+def plot_original_grid(grid: Grid, ax):
+    colors = []
     for row in grid.grid[1:-1]:
-        row_rewards = []
+        row_colors = []
         for cell in row[1:-1]:
-            row_rewards.append(cell.reward)
-        rewards.append(row_rewards)
+            row_colors.append(cell.color)
+        colors.append(row_colors)
 
-    rewards = rewards[::-1]
+    colors = colors[::-1]
 
-    plt.matshow(rewards, cmap='ocean')
-    ax = plt.gca()
+    ax.matshow(colors, cmap='RdYlGn')
+
+    ax.tick_params(bottom=False, top=True, left=True, right=False,
+                    labelbottom=False, labeltop=True, labelleft=True, labelright=False)
 
     # Major ticks
     ax.set_xticks(np.arange(0, len(grid.grid[0])-2, 1))
@@ -31,7 +33,7 @@ def plot_original_grid(grid):
     # Gridlines based on minor ticks
     ax.grid(which='minor', color='black', linestyle='-', linewidth=1)
     ax.invert_yaxis()
-    plt.show()
+    return ax
 
 
 def quatromatrix(left, bottom, right, top, ax=None, triplotkw={}, tripcolorkw={}):
@@ -40,7 +42,8 @@ def quatromatrix(left, bottom, right, top, ax=None, triplotkw={}, tripcolorkw={}
     right = right[::-1]
     top = top[::-1]
 
-    if not ax: ax=plt.gca()
+    if not ax:
+        ax = plt.gca()
     n = left.shape[0]; m=left.shape[1]
 
     a = np.array([[0,0],[0,1],[.5,.5],[1,0],[1,1]])
@@ -66,7 +69,7 @@ def quatromatrix(left, bottom, right, top, ax=None, triplotkw={}, tripcolorkw={}
     return tripcolor
 
 
-def plot_grid(grid: Grid):
+def plot_grid(grid: Grid, ax):
     left = []
     right = []
     top = []
@@ -98,11 +101,9 @@ def plot_grid(grid: Grid):
 
     # Plotting Source: https://stackoverflow.com/questions/44666679/something-like-plt-matshow-but-with-triangles
 
-    fig, ax=plt.subplots()
-    fig.set_size_inches(12, 12)
     quatromatrix(left, bottom, right, top, ax=ax,
                  triplotkw={"color": "k", "lw": 1},
-                 tripcolorkw={"cmap": "ocean"})
+                 tripcolorkw={"cmap": "ocean"})  # magma, ocean_r
 
 
     for (i, j), z in np.ndenumerate(left[::-1]):
@@ -114,6 +115,9 @@ def plot_grid(grid: Grid):
     for (i, j), z in np.ndenumerate(bottom[::-1]):
         ax.text(j+0.5, i+0.2, '{:0.1f}'.format(z), ha='center', va='center')
 
+    ax.tick_params(bottom=False, top=True, left=True, right=False,
+                    labelbottom=False, labeltop=True, labelleft=True, labelright=False)
+
     ax.margins(0)
     ax.set_aspect("equal")
 
@@ -126,51 +130,64 @@ def plot_grid(grid: Grid):
     #ax.invert_yaxis()
     #ax.xaxis.tick_top()
 
-    plt.show()
 
-
-from grid import opposites as opposite_of
-
-def plot_optimal_policy(grid):
+def plot_optimal_policy(grid: Grid, ax):
     optimal_policy = []
 
     for row in grid.grid[1:-1]:
         optimal_row = []
         for cell in row[1:-1]:
-            best_action = max(cell.q_values, key=cell.q_values.get)
-            optimal_cell = {k: 0 for k in cell.q_values}
-            optimal_cell[opposite_of[best_action]] = 1
-            optimal_row.append(optimal_cell)
+            if cell.can_be_starting_cell:
+                max_q_value = max(cell.q_values.values())
+                best_actions = [i for i, j in cell.q_values.items() if j == max_q_value]
+            else:
+                best_actions = []
+
+            optimal_row.append(best_actions)
         optimal_policy.append(optimal_row)
 
-    left = [[cell[Action.W] for cell in row] for row in optimal_policy]
-    right = [[cell[Action.E] for cell in row] for row in optimal_policy]
-    top = [[cell[Action.N] for cell in row] for row in optimal_policy]
-    bottom = [[cell[Action.S] for cell in row] for row in optimal_policy]
+    ax = plot_original_grid(grid, ax)
 
-    left = np.array(left)
-    right = np.array(right)
-    top = np.array(top)
-    bottom = np.array(bottom)
+    arrow = lambda x, y, dx, dy: \
+              ax.arrow(x=x, y=y, dx=dx, dy=dy,
+                       length_includes_head=True,
+                       width=(dx+dy)/10, head_length=0.2, head_width=0.2, linewidth=0)
 
-    # Plotting Source: https://stackoverflow.com/questions/44666679/something-like-plt-matshow-but-with-triangles
+    # uparrow = lambda i,j: arrow(x=i, y=j, dx=0, dy=1)
+    # downarrow = lambda i,j: arrow(x=i, y=j, dx=0, dy=-1)
+    # rightarrow = lambda i,j: arrow(x=i, y=j, dx=1, dy=0)
+    # leftarrow = lambda i,j: arrow(x=i, y=j, dx=-1, dy=0)
 
-    fig, ax=plt.subplots()
-    fig.set_size_inches(12, 12)
-    quatromatrix(left, bottom, right, top, ax=ax,
-                 triplotkw={"color": "k", "lw": 1},
-                 tripcolorkw={"cmap": "Greys_r"})
+    uparrow = lambda i,j: arrow(x=i, y=j, dx=0, dy=0.5)
+    downarrow = lambda i,j: arrow(x=i, y=j, dx=0, dy=-0.5)
+    rightarrow = lambda i,j: arrow(x=i, y=j, dx=0.5, dy=0)
+    leftarrow = lambda i,j: arrow(x=i, y=j, dx=-0.5, dy=0)
 
-    ax.margins(0)
-    ax.set_aspect("equal")
+    action_to_arrow = {
+        Action.N: uparrow,
+        Action.S: downarrow,
+        Action.E: rightarrow,
+        Action.W: leftarrow
+    }
 
-    ax.set_xticks(np.arange(left.shape[1]) + 0.5, minor=False)
-    ax.set_yticks(np.arange(left.shape[0]) + 0.5, minor=False)
+    for i, row in enumerate(optimal_policy[::-1]):
+        for j, best_actions in enumerate(row):
+            for best_action in best_actions:
+                action_to_arrow[best_action](j, i)
 
-    ax.set_xticklabels(np.arange(1, left.shape[1] + 1))
-    ax.set_yticklabels(np.arange(1, left.shape[0] + 1))
 
-    #ax.invert_yaxis()
-    #ax.xaxis.tick_top()
-    a = False
-    plt.show()
+def plot(grid, filename=None, show_plot=True):
+    fig, axes = plt.subplots(nrows=1, ncols=2)
+    fig.set_size_inches(22, 22)
+    # plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+    ax = axes[0]
+    plot_grid(grid, ax)
+
+    ax = axes[1]
+    plot_optimal_policy(grid, ax)
+
+    if filename is not None:
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
+
+    if show_plot:
+        plt.show()

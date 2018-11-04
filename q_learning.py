@@ -12,7 +12,7 @@ from grid import Action
 
 from policy import Policy, EpsilonGreedy, EpsilonGreedyGLIE
 
-from plotting import plot_grid, plot_optimal_policy
+from plotting import plot
 
 
 def Q_learning_choose_next_q_value(q_values: Dict[Action, float], policy: Policy):
@@ -113,12 +113,17 @@ def main():
         policy = EpsilonGreedy(epsilon)
     else:
         algorithm = SARSA
-        learning_rate = 0.7
+        learning_rate = 0.1
         policy = EpsilonGreedy(epsilon)
+        #policy = EpsilonGreedyGLIE()
 
     algorithm(gamma, learning_rate, grid, policy, episodes)
-    plot_grid(grid)
-    plot_optimal_policy(grid)
+
+    q_filename = task + '_' + algorithm_name
+    p_filename = q_filename + '_policy'
+
+    plot(grid, 'plots/' + q_filename + '.png', show_plot=False)
+
 
 if __name__ == '__main__':
     print(__doc__)
