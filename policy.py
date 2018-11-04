@@ -31,9 +31,9 @@ class EpsilonGreedyGLIE(EpsilonGreedy):
         self.episode += 1
         self.epsilon = 1.0 / self.episode
 
-    def select_action(self, q_values: Dict[Action, float], new_episode_flag: bool) -> Action:
-        if new_episode_flag:
+    def select_action(self, q_values: Dict[Action, float], new_episode: bool) -> Action:
+        if new_episode:
             self.update_epsilon()
-        return super().select_action(q_values, new_episode_flag)
+        return super().select_action(q_values, new_episode)
 
 from policy import EpsilonGreedyGLIE
