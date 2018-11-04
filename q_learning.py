@@ -119,12 +119,12 @@ def main():
         policy = EpsilonGreedy(epsilon)
         #policy = EpsilonGreedyGLIE()
 
+    q_filename = task + '_' + algorithm_name + '_epsilon_' + str(epsilon)
+    plot_filename = 'plots/' + q_filename + '.png'
+    print("Plot filename: ", plot_filename)
+
     algorithm(gamma, learning_rate, grid, policy, episodes)
-
-    q_filename = task + '_' + algorithm_name
-    p_filename = q_filename + '_policy'
-
-    plot(grid, 'plots/' + q_filename + '.png', show_plot=False, plot_orientation=plot_orientation)
+    plot(grid, plot_filename, show_plot=False, plot_orientation=plot_orientation)
 
 
 if __name__ == '__main__':
