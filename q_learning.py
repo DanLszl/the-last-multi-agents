@@ -1,6 +1,7 @@
 '''
 Usage:
-  q_learning.py [--Q-learning|--SARSA] [--episodes <value>] [--task <gridworld|cliffwalking>]
+  q_learning.py [--Q-learning|--SARSA] [--episodes <value>]
+    [--task <gridworld|cliffwalking>] [--epsilon <value>]
 '''
 
 from typing import Dict, Callable
@@ -54,9 +55,9 @@ def Q_learning(gamma: float, alfa: float, grid: Grid, policy: Policy, num_of_epi
     TD(gamma, alfa, grid, policy, num_of_episodes, Q_learning_choose_next_q_value, **kwargs)
 
 
-def main():
+def parse_parameters():
     import sys, getopt
-    opts, args = getopt.getopt(sys.argv[1:], '', ['Q-learning', 'SARSA', 'episodes=', 'task='])
+    opts, args = getopt.getopt(sys.argv[1:], '', ['Q-learning', 'SARSA', 'episodes=', 'task=', 'epsilon='])
     opts = dict(opts)
 
     try:
@@ -69,10 +70,34 @@ def main():
     except KeyError:
         task = 'gridworld'
 
-    gamma = 0.9
+    try:
+        epsilon = float(opts['--epsilon'])
+    except KeyError:
+        epsilon = 0.1
+
+    if '--Q-learning' in opts:
+        algorithm_name = 'Q-learning'
+    elif '--SARSA' in opts:
+        algorithm_name = 'SARSA'
+    else:
+        algorithm_name = 'Q-learning'
+
+    print('Using the following parameters:')
+    print('\talgorithm: ', algorithm_name)
+    print('\tepisodes: ', episodes)
+    print('\ttask: ', task)
+    print('\tepsilon: ', epsilon)
+    print('\t')
+
+    return algorithm_name, episodes, task, epsilon
+
+
+def main():
+    algorithm_name, episodes, task, epsilon = parse_parameters()
 
     if task == 'gridworld':
         grid = Grid(grid_def)
+        gamma = 0.9
     elif task == 'cliffwalking':
         grid = Grid(cliffwalking_def)
         gamma = 1   # cliffwalking is undiscounted
@@ -80,26 +105,20 @@ def main():
         print('The task ', task, ' is not implemented')
         exit(1)
 
-
-    if '--Q-learning' in opts or '--SARSA' not in opts:
+    if algorithm_name == 'Q-learning':
         algorithm = Q_learning
-        alfa = 1
-        # This is needed for Q-learning only
-        epsilon = 0.8
+        # Q learning is off policy, and the env is deterministic so alfa can be 1
+        learning_rate = 1
         policy = EpsilonGreedy(epsilon)
-    elif '--SARSA' in opts:
-        alfa = 0.7
-        algorithm = SARSA
-        policy = EpsilonGreedyGLIE()
     else:
-        print('Algorithm is not specified')
-        exit(1)
+        algorithm = SARSA
+        learning_rate = 0.7
+        policy = EpsilonGreedy(epsilon)
 
-    algorithm(gamma, alfa, grid, policy, episodes)
+    algorithm(gamma, learning_rate, grid, policy, episodes)
     plot_grid(grid)
 
 
 if __name__ == '__main__':
     print(__doc__)
     main()
-    exit(0)
